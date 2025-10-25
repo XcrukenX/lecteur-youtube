@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>YouTube Player avec Salles</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-color: #000;
+      color: white;
+      font-family: system-ui, sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-black text-white">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useRef, useEffect } = React;
+
+    const YouTubePlayer = () => {
+      const [roomId, setRoomId] = useState('');
+      const [allRooms, setAllRooms] = useState([]);
+      const [currentRoom, setCurrentRoom] = useState(null);
+      const [videoId, setVideoId] = useState('dQw4w9WgXcQ');
+      const [messages, setMessages] = useState([]);
+      const [newMessage, setNewMessage] = useState('');
+      const [username, setUsername] = useState('Anonymous');
+      const [isUsernameSet, setIsUsernameSet] = useState(false);
+      const iframeRef = useRef(null);
+      const messagesEndRef = useRef(null);
+
+      const origin = typeof window !== 'undefined' ? window.location.origin : 'https://example.com';
+
+      const handleCreateRoom = () => {
+        const newRoomId = Math.random().toString(36).substring(2, 10);
+        const newRoom = {
+          id: newRoomId,
+          name: `Salle ${newRoomId}`,
+          videoId: 'dQw4w9WgXcQ',
+          createdAt: new Date().toISOString()
+        };
+        setAllRooms(prev => [...prev, newRoom]);
+        setCurrentRoom(newRoom);
+        setRoomId(newRoomId);
+        setVideoId(newRoom.videoId);
+      };
+
+      const handleJoinRoom = (e) => {
+        e.preventDefault();
+        const room = allRooms.find(r => r.id === roomId);
+        if (room) {
+          setCurrentRoom(room);
+          setVideoId(room.videoId);
+          setMessages([]);
+        } else {
+          alert('Salle non trouvée. Créez-la d\'abord.');
+        }
+      };
+
+      const handleLoadVideo = () => {
+        if (!currentRoom) return;
+        const updatedRooms = allRooms.map(room =>
+          room.id === currentRoom.id ? { ...room, videoId } : room
+        );
+        setAllRooms(updatedRooms);
+        setCurrentRoom({ ...currentRoom, videoId });
+
+        if (iframeRef.current) {
+          const newSrc = `https://www.youtube.com/embed/${videoId}?enablejsapi=1&origin=${encodeURIComponent(origin)}`;
+          iframeRef.current.src = newSrc;
+        }
+      };
+
+      const handleSetUsername = (e) => {
+        e.preventDefault();
+        if (username.trim()) {
+          setIsUsernameSet(true);
+        }
+      };
+
+      const handleSendMessage = (e) => {
+        e.preventDefault();
+        if (newMessage.trim() && currentRoom) {
+          const message = {
+            id: Date.now(),
+            username: username.trim() || 'Anonymous',
+            text: newMessage.trim(),
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            roomId: currentRoom.id
+          };
+          setMessages(prev => [...prev, message]);
+          setNewMessage('');
+        }
+      };
+
+      useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, [messages]);
+
+      return (
+        <div className="max-w-6xl mx-auto p-6 bg-black rounded-xl shadow-2xl">
+          <div className="text-center mb-6">
+            <h1 className="text-3xl font-bold text-yellow-400 mb-2">YouTube Player</h1>
+            <p className="text-gray-400">Visionnage synchronisé en salle privée</p>
+          </div>
+
+          <div className="mb-6 bg-gray-900 rounded-lg p-4 border border-yellow-700">
+            <h2 className="text-xl font-bold text-yellow-400 mb-3 text-center">Salles de visionnage</h2>
+            
+            {!currentRoom ? (
+              <div className="flex flex-col sm:flex-row gap-3 items-center justify-center">
+                <button
+                  onClick={handleCreateRoom}
+                  className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-black font-medium rounded-lg transition-colors duration-200 font-bold"
+                >
+                  Créer une salle
+                </button>
+                
+                <form onSubmit={handleJoinRoom} className="flex gap-2">
+                  <input
+                    type="text"
+                    value={roomId}
+                    onChange={(e) => setRoomId(e.target.value)}
+                    placeholder="ID de la salle"
+                    className="px-3 py-2 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 border border-gray-700 text-sm w-32"
+                  />
+                  <button
+                    type="submit"
+                    className="px-3 py-2 bg-yellow-600 hover:bg-yellow-700 text-black font-medium rounded-lg transition-colors duration-200 text-sm font-bold"
+                  >
+                    Rejoindre
+                  </button>
+                </form>
+              </div>
+            ) : (
+              <div className="text-center">
+                <p className="text-yellow-300 font-medium mb-2">
+                  Salle active : <span className="text-white">{currentRoom.id}</span>
+                </p>
+                <button
+                  onClick={() => {
+                    setCurrentRoom(null);
+                    setMessages([]);
+                  }}
+                  className="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm"
+                >
+                  Quitter la salle
+                </button>
+              </div>
+            )}
+          </div>
+
+          {currentRoom && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
+                <div className="relative aspect-video bg-black rounded-lg overflow-hidden mb-6 border-2 border-yellow-600">
+                  <iframe
+                    ref={iframeRef}
+                    key={videoId}
+                    src={`https://www.youtube.com/embed/${videoId}?enablejsapi=1&origin=${encodeURIComponent(origin)}`}
+                    title="YouTube video player"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                    className="w-full h-full"
+                  />
+                </div>
+
+                <div className="bg-gray-900 rounded-lg p-4 space-y-4 border border-yellow-700">
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <input
+                      type="text"
+                      value={videoId}
+                      onChange={(e) => setVideoId(e.target.value.trim())}
+                      placeholder="ID vidéo YouTube"
+                      className="flex-1 px-4 py-2 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 border border-gray-700"
+                    />
+                    <button
+                      onClick={handleLoadVideo}
+                      className="px-6 py-2 bg-yellow-600 hover:bg-yellow-700 text-black font-medium rounded-lg transition-colors duration-200 font-bold"
+                    >
+                      Charger
+                    </button>
+                  </div>
+
+                  <div className="text-sm text-gray-400 mt-2">
+                    <p>• Exemple ID : <span className="text-yellow-300">dQw4w9WgXcQ</span></p>
+                    <p>• Tous les membres de la salle verront la même vidéo.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gray-900 rounded-lg p-4 border-2 border-yellow-600 h-fit">
+                <h2 className="text-xl font-bold text-yellow-400 mb-4 text-center">Chat de la salle</h2>
+                
+                {!isUsernameSet ? (
+                  <div className="mb-4">
+                    <p className="text-gray-300 text-sm mb-2">Choisissez un pseudo :</p>
+                    <form onSubmit={handleSetUsername} className="flex gap-2">
+                      <input
+                        type="text"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        placeholder="Votre pseudo"
+                        className="flex-1 px-3 py-2 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 border border-gray-700 text-sm"
+                        maxLength={20}
+                      />
+                      <button
+                        type="submit"
+                        className="px-3 py-2 bg-yellow-600 hover:bg-yellow-700 text-black font-medium rounded-lg transition-colors duration-200 text-sm font-bold"
+                      >
+                        Entrer
+                      </button>
+                    </form>
+                  </div>
+                ) : (
+                  <div className="mb-2 flex justify-between items-center">
+                    <span className="text-yellow-300 text-sm font-medium">Pseudo : <span className="text-white">{username}</span></span>
+                  </div>
+                )}
+
+                <div className="h-80 overflow-y-auto mb-4 bg-gray-800 rounded-lg p-3 space-y-3">
+                  {messages.length === 0 ? (
+                    <div className="text-gray-500 text-center italic flex items-center justify-center h-full">
+                      Aucun message. Soyez le premier à parler !
+                    </div>
+                  ) : (
+                    messages.map((message) => (
+                      <div key={message.id} className="bg-gray-700 rounded-lg p-3">
+                        <div className="flex justify-between items-start mb-1">
+                          <span className="text-yellow-300 font-medium">{message.username}</span>
+                          <span className="text-gray-400 text-xs">{message.timestamp}</span>
+                        </div>
+                        <p className="text-white text-sm">{message.text}</p>
+                      </div>
+                    ))
+                  )}
+                  <div ref={messagesEndRef} />
+                </div>
+
+                {isUsernameSet && (
+                  <form onSubmit={handleSendMessage} className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      placeholder="Votre message..."
+                      className="flex-1 px-3 py-2 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 border border-gray-700 text-sm"
+                    />
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-black font-medium rounded-lg transition-colors duration-200 text-sm font-bold"
+                    >
+                      Envoyer
+                    </button>
+                  </form>
+                )}
+              </div>
+            </div>
+          )}
+
+          {!currentRoom && (
+            <div className="text-center text-gray-500 mt-8">
+              <p>Créez ou rejoignez une salle pour commencer le visionnage synchronisé.</p>
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<YouTubePlayer />);
+  </script>
+</body>
+</html>
+
