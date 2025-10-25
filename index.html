@@ -3,228 +3,410 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Salle de Visionnage YouTube</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            yellow: {
-              300: '#FBBF24',
-              400: '#F59E0B',
-              500: '#EAB308',
-              600: '#CA8A04',
-              700: '#A16207',
-            }
-          }
-        }
+  <title>Salle de Visionnage</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .header h1 {
+      font-size: 32px;
+      font-weight: bold;
+      color: #FFD700;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      color: #A9A9A9;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+
+    @media (min-width: 1024px) {
+      .grid {
+        grid-template-columns: 2fr 1fr;
       }
     }
-  </script>
-  <style>
-    input[type="range"]::-webkit-slider-thumb {
-      appearance: none;
-      height: 16px;
-      width: 16px;
-      border-radius: 50%;
-      background: #F59E0B;
+
+    .video-container {
+      position: relative;
+      aspect-ratio: 16 / 9;
+      background-color: #000;
+      border: 2px solid #B8860B;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+
+    .video-container iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .controls {
+      background-color: #111;
+      padding: 16px;
+      border-radius: 8px;
+      border: 1px solid #555;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    @media (min-width: 640px) {
+      .input-group {
+        flex-direction: row;
+      }
+    }
+
+    .input-group input {
+      flex: 1;
+      padding: 8px 16px;
+      background-color: #222;
+      color: white;
+      border: 1px solid #444;
+      border-radius: 8px;
+      outline: none;
+    }
+
+    .input-group input:focus {
+      border-color: #FFD700;
+    }
+
+    .input-group button {
+      padding: 8px 24px;
+      background-color: #FFD700;
+      color: black;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
       cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .input-group button:hover {
+      background-color: #DAA520;
+    }
+
+    .help-text {
+      margin-top: 8px;
+      font-size: 14px;
+      color: #A9A9A9;
+    }
+
+    .help-text span {
+      color: #FFD700;
+    }
+
+    .chat-container {
+      background-color: #111;
+      padding: 16px;
+      border-radius: 8px;
+      border: 2px solid #B8860B;
+    }
+
+    .chat-header {
+      text-align: center;
+      font-size: 20px;
+      font-weight: bold;
+      color: #FFD700;
+      margin-bottom: 16px;
+    }
+
+    .username-form {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .username-form input {
+      flex: 1;
+      padding: 6px 12px;
+      background-color: #222;
+      color: white;
+      border: 1px solid #444;
+      border-radius: 6px;
+      outline: none;
+      font-size: 14px;
+    }
+
+    .username-form button {
+      padding: 6px 12px;
+      background-color: #FFD700;
+      color: black;
+      font-weight: bold;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .username-form button:hover {
+      background-color: #DAA520;
+    }
+
+    .logged-in-as {
+      font-size: 14px;
+      color: #FFD700;
+      margin-bottom: 16px;
+    }
+
+    .logged-in-as span {
+      color: white;
+    }
+
+    .messages {
+      height: 320px;
+      overflow-y: auto;
+      background-color: #222;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .message {
+      background-color: #333;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+    }
+
+    .message-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .message-username {
+      color: #FFD700;
+      font-weight: bold;
+    }
+
+    .message-time {
+      color: #888;
+      font-size: 12px;
+    }
+
+    .message-text {
+      color: white;
+      font-size: 14px;
+    }
+
+    .empty-messages {
+      color: #666;
+      font-style: italic;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+    }
+
+    .chat-input {
+      display: flex;
+      gap: 8px;
+    }
+
+    .chat-input input {
+      flex: 1;
+      padding: 6px 12px;
+      background-color: #222;
+      color: white;
+      border: 1px solid #444;
+      border-radius: 6px;
+      outline: none;
+      font-size: 14px;
+    }
+
+    .chat-input button {
+      padding: 6px 16px;
+      background-color: #FFD700;
+      color: black;
+      font-weight: bold;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .chat-input button:hover {
+      background-color: #DAA520;
     }
   </style>
 </head>
-<body class="bg-black text-white">
-  <div id="root" class="max-w-6xl mx-auto p-6">
-    <!-- React app will mount here -->
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Salle de Visionnage</h1>
+      <p>Visionnez ensemble dans une seule salle partagée</p>
+    </div>
+
+    <div class="grid">
+      <!-- Video Section -->
+      <div>
+        <div class="video-container">
+          <iframe id="youtube-iframe" title="YouTube video player" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+        </div>
+
+        <div class="controls">
+          <div class="input-group">
+            <input type="text" id="video-id-input" placeholder="ID vidéo YouTube" value="dQw4w9WgXcQ" />
+            <button id="load-video-btn">Charger</button>
+          </div>
+          <div class="help-text">
+            <p>• Exemple ID : <span>dQw4w9WgXcQ</span></p>
+            <p>• Tous les utilisateurs voient la même vidéo dans cette salle unique.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat Section -->
+      <div class="chat-container">
+        <div class="chat-header">Chat Public</div>
+
+        <div id="username-section">
+          <p class="help-text" style="margin-bottom: 8px;">Choisissez un pseudo pour discuter :</p>
+          <form class="username-form" id="username-form">
+            <input type="text" id="username-input" placeholder="Votre pseudo" maxlength="20" value="Anonymous" />
+            <button type="submit">Entrer</button>
+          </form>
+        </div>
+
+        <div id="logged-in-section" style="display: none;">
+          <div class="logged-in-as">Connecté en tant que : <span id="display-username">Anonymous</span></div>
+        </div>
+
+        <div class="messages" id="messages-container">
+          <div class="empty-messages">Aucun message pour le moment. Soyez le premier à parler !</div>
+        </div>
+
+        <form class="chat-input" id="message-form" style="display: none;">
+          <input type="text" id="message-input" placeholder="Tapez votre message..." />
+          <button type="submit">Envoyer</button>
+        </form>
+      </div>
+    </div>
   </div>
 
   <script>
-    // État global simulé (sans React)
-    let state = {
-      videoId: 'dQw4w9WgXcQ',
-      messages: [],
-      newMessage: '',
-      username: 'Anonymous',
-      isUsernameSet: false
-    };
+    // DOM Elements
+    const videoIdInput = document.getElementById('video-id-input');
+    const loadVideoBtn = document.getElementById('load-video-btn');
+    const iframe = document.getElementById('youtube-iframe');
+    const usernameForm = document.getElementById('username-form');
+    const usernameInput = document.getElementById('username-input');
+    const usernameSection = document.getElementById('username-section');
+    const loggedInSection = document.getElementById('logged-in-section');
+    const displayUsername = document.getElementById('display-username');
+    const messageForm = document.getElementById('message-form');
+    const messageInput = document.getElementById('message-input');
+    const messagesContainer = document.getElementById('messages-container');
 
-    const origin = window.location.origin;
-    let iframeRef = null;
-    let messagesEndRef = null;
+    // State
+    let messages = [];
+    let username = 'Anonymous';
+    let isUsernameSet = false;
 
-    // Fonctions utilitaires
-    const setState = (newState) => {
-      state = { ...state, ...newState };
-      renderApp();
-    };
+    // Origin
+    const origin = window.location.origin || 'https://example.com';
 
-    const handleLoadVideo = () => {
-      if (iframeRef) {
-        const newSrc = `https://www.youtube.com/embed/${state.videoId}?enablejsapi=1&origin=${encodeURIComponent(origin)}`;
-        iframeRef.src = newSrc;
+    // Initialize iframe
+    function updateIframe(videoId) {
+      const src = `https://www.youtube.com/embed/${videoId}?enablejsapi=1&origin=${encodeURIComponent(origin)}`;
+      iframe.src = src;
+    }
+
+    updateIframe(videoIdInput.value);
+
+    // Load video
+    loadVideoBtn.addEventListener('click', () => {
+      const videoId = videoIdInput.value.trim();
+      if (videoId) {
+        updateIframe(videoId);
       }
-    };
+    });
 
-    const handleSetUsername = (e) => {
+    // Set username
+    usernameForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      if (state.username.trim()) {
-        setState({ isUsernameSet: true });
+      const name = usernameInput.value.trim();
+      if (name) {
+        username = name;
+        displayUsername.textContent = username;
+        isUsernameSet = true;
+        usernameSection.style.display = 'none';
+        loggedInSection.style.display = 'block';
+        messageForm.style.display = 'flex';
       }
-    };
+    });
 
-    const handleSendMessage = (e) => {
+    // Send message
+    messageForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      if (state.newMessage.trim()) {
+      const text = messageInput.value.trim();
+      if (text) {
+        const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         const message = {
           id: Date.now(),
-          username: state.username.trim() || 'Anonymous',
-          text: state.newMessage.trim(),
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          username: username,
+          text: text,
+          timestamp: timestamp
         };
-        setState({
-          messages: [...state.messages, message],
-          newMessage: ''
-        });
+        messages.push(message);
+        renderMessages();
+        messageInput.value = '';
       }
-    };
+    });
 
-    const scrollToBottom = () => {
-      if (messagesEndRef) {
-        messagesEndRef.scrollIntoView({ behavior: 'smooth' });
+    // Render messages
+    function renderMessages() {
+      if (messages.length === 0) {
+        messagesContainer.innerHTML = '<div class="empty-messages">Aucun message pour le moment. Soyez le premier à parler !</div>';
+        return;
       }
-    };
 
-    // Événements de saisie
-    const onVideoIdChange = (e) => setState({ videoId: e.target.value.trim() });
-    const onNewMessageChange = (e) => setState({ newMessage: e.target.value });
-    const onUsernameChange = (e) => setState({ username: e.target.value });
-
-    // Rendu
-    const renderApp = () => {
-      const appHtml = `
-        <div class="max-w-6xl mx-auto p-6 bg-black rounded-xl shadow-2xl">
-          <div class="text-center mb-6">
-            <h1 class="text-3xl font-bold text-yellow-400 mb-2">Salle de Visionnage</h1>
-            <p class="text-gray-400">Visionnez ensemble dans une seule salle partagée</p>
+      messagesContainer.innerHTML = '';
+      messages.forEach(msg => {
+        const messageEl = document.createElement('div');
+        messageEl.className = 'message';
+        messageEl.innerHTML = `
+          <div class="message-header">
+            <span class="message-username">${msg.username}</span>
+            <span class="message-time">${msg.timestamp}</span>
           </div>
+          <p class="message-text">${msg.text}</p>
+        `;
+        messagesContainer.appendChild(messageEl);
+      });
 
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Video Container -->
-            <div class="lg:col-span-2">
-              <div class="relative aspect-video bg-black rounded-lg overflow-hidden mb-6 border-2 border-yellow-600">
-                <iframe
-                  id="youtube-iframe"
-                  src="https://www.youtube.com/embed/${state.videoId}?enablejsapi=1&origin=${encodeURIComponent(origin)}"
-                  title="YouTube video player"
-                  frameborder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowfullscreen
-                  class="w-full h-full"
-                ></iframe>
-              </div>
-
-              <!-- Controls -->
-              <div class="bg-gray-900 rounded-lg p-4 space-y-4 border border-yellow-700">
-                <div class="flex flex-col sm:flex-row gap-3">
-                  <input
-                    type="text"
-                    value="${state.videoId}"
-                    oninput="onVideoIdChange(event)"
-                    placeholder="ID vidéo YouTube"
-                    class="flex-1 px-4 py-2 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 border border-gray-700"
-                  />
-                  <button
-                    onclick="handleLoadVideo()"
-                    class="px-6 py-2 bg-yellow-600 hover:bg-yellow-700 text-black font-medium rounded-lg transition-colors duration-200 font-bold"
-                  >
-                    Charger
-                  </button>
-                </div>
-
-                <div class="text-sm text-gray-400 mt-2">
-                  <p>• Exemple ID : <span class="text-yellow-300">dQw4w9WgXcQ</span></p>
-                  <p>• Tous les utilisateurs voient la même vidéo dans cette salle unique.</p>
-                </div>
-              </div>
-            </div>
-
-            <!-- Chat Container -->
-            <div class="bg-gray-900 rounded-lg p-4 border-2 border-yellow-600 h-fit">
-              <h2 class="text-xl font-bold text-yellow-400 mb-4 text-center">Chat Public</h2>
-              
-              ${!state.isUsernameSet ? `
-                <div class="mb-4">
-                  <p class="text-gray-300 text-sm mb-2">Choisissez un pseudo pour discuter :</p>
-                  <form onsubmit="handleSetUsername(event)" class="flex gap-2">
-                    <input
-                      type="text"
-                      value="${state.username}"
-                      oninput="onUsernameChange(event)"
-                      placeholder="Votre pseudo"
-                      class="flex-1 px-3 py-2 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 border border-gray-700 text-sm"
-                      maxlength="20"
-                    />
-                    <button
-                      type="submit"
-                      class="px-3 py-2 bg-yellow-600 hover:bg-yellow-700 text-black font-medium rounded-lg transition-colors duration-200 text-sm font-bold"
-                    >
-                      Entrer
-                    </button>
-                  </form>
-                </div>
-              ` : `
-                <div class="mb-2 flex justify-between items-center">
-                  <span class="text-yellow-300 text-sm font-medium">Connecté en tant que : <span class="text-white">${state.username}</span></span>
-                </div>
-              `}
-
-              <div class="h-80 overflow-y-auto mb-4 bg-gray-800 rounded-lg p-3 space-y-3">
-                ${state.messages.length === 0 ? `
-                  <div class="text-gray-500 text-center italic flex items-center justify-center h-full">
-                    Aucun message pour le moment. Soyez le premier à parler !
-                  </div>
-                ` : state.messages.map(msg => `
-                  <div class="bg-gray-700 rounded-lg p-3">
-                    <div class="flex justify-between items-start mb-1">
-                      <span class="text-yellow-300 font-medium">${msg.username}</span>
-                      <span class="text-gray-400 text-xs">${msg.timestamp}</span>
-                    </div>
-                    <p class="text-white text-sm">${msg.text}</p>
-                  </div>
-                `).join('')}
-                <div id="messages-end"></div>
-              </div>
-
-              ${state.isUsernameSet ? `
-                <form onsubmit="handleSendMessage(event)" class="flex gap-2">
-                  <input
-                    type="text"
-                    value="${state.newMessage}"
-                    oninput="onNewMessageChange(event)"
-                    placeholder="Tapez votre message..."
-                    class="flex-1 px-3 py-2 bg-gray-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 border border-gray-700 text-sm"
-                  />
-                  <button
-                    type="submit"
-                    class="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-black font-medium rounded-lg transition-colors duration-200 text-sm font-bold"
-                  >
-                    Envoyer
-                  </button>
-                </form>
-              ` : ''}
-            </div>
-          </div>
-        </div>
-      `;
-
-      document.getElementById('root').innerHTML = appHtml;
-      iframeRef = document.getElementById('youtube-iframe');
-      messagesEndRef = document.getElementById('messages-end');
-      scrollToBottom();
-    };
-
-    // Initial render
-    renderApp();
+      // Scroll to bottom
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
   </script>
 </body>
 </html>
